@@ -1,11 +1,11 @@
 const axios = require("axios");
 
 module.exports.config = {
-  name: "Ariya",
-  version: "1.1.0",
+  name: "flash",
+  version: "1.2.1",
   hasPermssion: 0,
   credits: "Aman Khan + Aria",
-  description: "Flirty Bengali AI Chatbot",
+  description: "Flirty Bengali AI Chatbot (Gemini AI)",
   commandCategory: "ai",
   usages: "flash [question]",
   cooldowns: 5
@@ -18,39 +18,50 @@ module.exports.handleEvent = async function ({ api, event }) {
     const body = event.body ? event.body.trim().toLowerCase() : "";
     if (!body) return;
 
-    // Check if message contains trigger words
+    // Trigger word check
     const isTriggered = triggerWords.some(word => body.includes(word));
-    if (!isTriggered) return; // যদি trigger word না থাকে, কিছু করবে না
+    if (!isTriggered) return;
 
-    // শুধু ইউজারের রিপ্লাই হলে উত্তর দিবে
+    // Only reply if it's a user reply
     if (!event.messageReply) return;
 
-    // প্রশ্ন হিসেবে reply message নিবে
     const question = event.messageReply.body || "কি করছো jaan? 😏";
 
-    // Gemini API বা AI লজিক ব্যবহার করে বানানো flirty Bengali reply
-    // এখানে আমরা fun, playful, flirty reply generate করছি
-    let reply = "";
+    // Google Gemini AI call
+    const response = await axios.post(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+      {
+        contents: [
+          {
+            parts: [
+              { text: `Funny, flirty, playful Bengali reply to: "${question}"` }
+            ]
+          }
+        ]
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": "AIzaSyAnitXo4VrfRxmG2SjRomS8bPQzsq4pvrg" // Hardcoded API Key
+        }
+      }
+    );
 
-    const funReplies = [
-      "Haa bolo jaan, ki korbo tomake hasi dite? 😘",
-      "Arrey tomake dekhe amar din shuru holo, kemon aso? 😉",
-      "Tumi to abar kharap mone hochho, chinta korona, ami achi na? 😏",
-      "Bored? Amar sathe thakle toh raat pore jabe, din uthbe na 😜",
-      "Sokal bhalo, kintu tomar hasi chara ki kore shuru hobe amar din? 😘"
-    ];
+    let aiReply = "😅 আমার মজা করে কিছু বলার মতো energy পাইনি!";
+    if (response.data?.candidates?.[0]?.content?.parts) {
+      aiReply = response.data.candidates[0].content.parts
+        .map(p => p.text || "")
+        .join("\n");
+    }
 
-    // Randomly select a reply
-    reply = funReplies[Math.floor(Math.random() * funReplies.length)];
-
-    // Send message
-    return api.sendMessage(reply, event.threadID, event.messageID);
+    // Send the AI reply
+    return api.sendMessage(aiReply, event.threadID, event.messageID);
 
   } catch (error) {
-    console.error("Flash error:", error.message);
-    api.sendMessage("❌ কিছু সমস্যা হয়েছে!", event.threadID, event.messageID);
+    console.error("Flash AI error:", error.response?.data || error.message);
+    api.sendMessage("❌ কিছু সমস্যা হয়েছে AI চালানোর সময়!", event.threadID, event.messageID);
   }
 };
 
-// normal run empty
+// Normal run empty
 module.exports.run = () => {};
