@@ -1,90 +1,94 @@
 const fs = global.nodemodule["fs-extra"];
 module.exports.config = {
   name: "goibot",
-  version: "1.1.0",
+  version: "1.5.0",
   hasPermssion: 0,
   credits: "Ashikur Rahman",
-  description: "Full-featured goibot with single reply fix",
+  description: "Ultimate Self-Learning Goibot with memory",
   commandCategory: "Noprefix",
   usages: "noprefix",
   cooldowns: 5,
 };
 
-const activeChats = new Map(); // threadID -> last bot messageID
+const activeChats = new Map();
+let conversationMemory = {};
 
-// 1️⃣ Trigger words (strict)
+// Load conversation memory
+try { conversationMemory = fs.readJSONSync("./memory.json"); } 
+catch(e) { conversationMemory = {}; }
+
+// Trigger words
 const triggers = ["bby", "bot", "baby", "babe", "ariya", "Ariya"];
 
-// 2️⃣ TL / romantic / flirty / fun replies
+// TL / Romantic / Flirty / Fun replies (sample, expand 500+)
 const tl = [
   "Hai, ami tomar masum cheharay mugdhho 😘",
   "Bolo amar jan, ki khobor 😚",
-  "Hey! Tomar hashi aj o amar mon chhue geche 😊",
-  "Ami to shudhu tomar jonno opekkha korchi 😍",
-  "Tumi ki aj o amar kotha vabcho? 🥺",
-  "Ek chumbon dao, onek din dhore paini 😝",
-  "Cholo ektu moja kori, ki bolo? 😏",
-  "Ami tomar sathe thakte chai, ekhoni 🥰",
-  "Tumi amar hridoyer rajkumari/rajkumar 😍",
-  "Ajke tomar message peye khub khushi 😄"
-  // আরও add করা যাবে
+  "Hey! Tomar hashi aj o amar mon chhue geche 😊"
 ];
 
-// 3️⃣ Common user-bot replies
+// Common replies (sample, expand 200+)
 const commonReplies = [
   { user: "kemon acho", bot: "Ami bhalo achi, tumi kemon acho?" },
-  { user: "ki korcho", bot: "Shudhu boshe tomar kotha vabchi 😄, tumi ki korcho?" },
-  { user: "ki khobor", bot: "Bhalo khobor 😇, tumi kemon aso?" },
-  { user: "miss korchi", bot: "Ami o tomake miss korchi 🥺💖" },
-  { user: "tumi kothay", bot: "Ami ekhane achi, tumi kothay?" }
+  { user: "tumar nam ki", bot: "Ariya, amar nam Ariya 😘" },
+  { user: "tomar admin ke", bot: "Ami to Ashikur Rahman er banano 😎" }
 ];
 
-// 4️⃣ Contextual replies (gali, proposal, funny)
+// Contextual replies (sample, expand 100+)
 const contextualReplies = [
-  // Gali / offensive
-  { keywords: ["mad", "goru", "bodmash", "stupid", "harami"], replies: [
+  { keywords: ["mad","stupid","fuck","bastard"], replies: [
     "Hey! Eto galo keno 😅", 
-    "Ami galo pochondo kori na 😇", 
-    "Ami to shudhu bhalobasha dite chai 💖"
+    "Ami galo pochondo kori na 😇"
   ]},
-
-  // Proposal / romantic
-  { keywords: ["ami tomake bhalobashi", "propose", "marry me", "biye korte chai"], replies: [
-    "Awww 🥰 ami o tomake bhalobashi 💖", 
-    "Tomar kotha shune mon khushi holo 😍", 
-    "Cholo ekta cup cha kheye decide kori ☕😊"
-  ]},
-
-  // Funny / casual
-  { keywords: ["khela korbo", "moja", "funny", "tumi moja"], replies: [
-    "Haha 😄 cholo moja kori!", 
-    "Tumi maja korcho to? 🤭", 
-    "Ami ready 😏 cholo suru kori!"
+  { keywords: ["ami tomake bhalobashi","propose","marry me","biye korte chai"], replies: [
+    "Awww 🥰 ami o tomake bhalobashi 💖"
   ]}
 ];
 
-module.exports.handleEvent = async function({ api, event, Users }) {
-  const { threadID, messageID, senderID, body, messageReply } = event;
+// Fuzzy similarity
+function getSimilarity(a, b) {
+  const wordsA = a.toLowerCase().split(" ");
+  const wordsB = b.toLowerCase().split(" ");
+  const common = wordsA.filter(word => wordsB.includes(word));
+  return common.length / Math.max(wordsA.length, 1);
+}
+
+module.exports.handleEvent = async function({ api, event }) {
+  const { threadID, messageID, body, messageReply } = event;
   if (!body) return;
-
-  const name = await Users.getNameUser(senderID);
   const bodyLower = body.toLowerCase();
+  let replied = false;
+  let botReply = "";
 
-  let replied = false; // ✅ Flag to prevent multiple replies
+  // 1️⃣ Check conversation memory (fuzzy learning)
+  for (let thread in conversationMemory) {
+    for (let conv of conversationMemory[thread]) {
+      let similarity = getSimilarity(conv.user, bodyLower);
+      if(similarity >= 0.3) {
+        botReply = conv.bot;
+        const msg = await api.sendMessage(botReply, threadID);
+        activeChats.set(threadID, msg.messageID);
+        replied = true;
+        break;
+      }
+    }
+    if(replied) break;
+  }
 
-  // 1️⃣ Trigger reply (strict)
-  if (triggers.some(word => bodyLower.includes(word))) {
-    const rand = tl[Math.floor(Math.random() * tl.length)];
-    const msg = await api.sendMessage(`${name}, ${rand}`, threadID);
+  // 2️⃣ Trigger reply (strict)
+  if (!replied && triggers.some(word => bodyLower.includes(word))) {
+    botReply = tl[Math.floor(Math.random() * tl.length)];
+    const msg = await api.sendMessage(botReply, threadID);
     activeChats.set(threadID, msg.messageID);
     replied = true;
   }
 
-  // 2️⃣ Common replies (flexible match)
+  // 3️⃣ Common replies
   if (!replied) {
     for (let cr of commonReplies) {
-      if (bodyLower.includes(cr.user)) { 
-        const msg = await api.sendMessage(`${name}, ${cr.bot}`, threadID);
+      if (bodyLower.includes(cr.user)) {
+        botReply = cr.bot;
+        const msg = await api.sendMessage(botReply, threadID);
         activeChats.set(threadID, msg.messageID);
         replied = true;
         break;
@@ -92,28 +96,40 @@ module.exports.handleEvent = async function({ api, event, Users }) {
     }
   }
 
-  // 3️⃣ Contextual replies
+  // 4️⃣ Contextual replies
   if (!replied) {
     for (let ctx of contextualReplies) {
       for (let word of ctx.keywords) {
         if (bodyLower.includes(word.toLowerCase())) {
-          const rand = ctx.replies[Math.floor(Math.random() * ctx.replies.length)];
-          const msg = await api.sendMessage(`${name}, ${rand}`, threadID);
+          botReply = ctx.replies[Math.floor(Math.random() * ctx.replies.length)];
+          const msg = await api.sendMessage(botReply, threadID);
           activeChats.set(threadID, msg.messageID);
           replied = true;
           break;
         }
       }
-      if (replied) break;
+      if(replied) break;
     }
   }
 
-  // 4️⃣ Reply to bot's previous message
+  // 5️⃣ Reply to bot's previous message (fuzzy)
   if (!replied && messageReply && activeChats.get(threadID) === messageReply.messageID) {
-    const rand = tl[Math.floor(Math.random() * tl.length)];
-    const msg = await api.sendMessage(`${name}, ${rand}`, threadID);
-    activeChats.set(threadID, msg.messageID);
+    const previousMsg = messageReply.body.toLowerCase();
+    const similarity = getSimilarity(previousMsg, bodyLower);
+    if (similarity >= 0.3) {
+      botReply = tl[Math.floor(Math.random() * tl.length)];
+      const msg = await api.sendMessage(botReply, threadID);
+      activeChats.set(threadID, msg.messageID);
+      replied = true;
+    }
   }
-}
 
-module.exports.run = function({ api, event, client, __GLOBAL }) { }
+  // 6️⃣ Store conversation in memory
+  if(botReply) {
+    if(!conversationMemory[threadID]) conversationMemory[threadID] = [];
+    conversationMemory[threadID].push({ user: bodyLower, bot: botReply });
+    fs.writeJSONSync("./memory.json", conversationMemory);
+  }
+};
+
+module.exports.run = function({ api, event, client, __GLOBAL }) { };
