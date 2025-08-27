@@ -6,7 +6,7 @@ module.exports.config = {
 	credits: "Ashikur Rahman", 
 	description: "hihihihi",
 	commandCategory: "no prefix",
-	usages: "priyansh",
+	usages: "Ashik",
     cooldowns: 5, 
 };
 
@@ -21,7 +21,7 @@ module.exports.handleEvent = function({ api, event }) {
 	) {
 		var msg = {
 			body: "Ashik ✨💖🥀",
-			attachment: fs.createReadStream(__dirname + `/noprefix/Priyansh.png`)
+			attachment: fs.createReadStream(__dirname + `/noprefix/Ashik.png`)
 		}
 		api.sendMessage(msg, threadID, messageID);
     	api.setMessageReaction("💔", event.messageID, (err) => {}, true)
