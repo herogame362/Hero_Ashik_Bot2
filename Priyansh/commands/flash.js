@@ -1,60 +1,82 @@
-const axios = require("axios");
+const axios = require('axios');
+const baseApiUrl = "https://noobs-api.top/dipto";
 
 module.exports.config = {
-  name: "flash",
-  version: "1.0.4",
-  hasPermssion: 0,
-  credits: "Aman Khan",
-  description: "Google Gemini Flash 2.0 AI (No Prefix)",
-  commandCategory: "ai",
-  usages: "flash [question]",
-  cooldowns: 5
+    name: "bby",
+    aliases: ["baby", "bbe", "babe", "sam"],
+    version: "6.9.0",
+    author: "dipto",
+    description: "better than all sim simi",
 };
 
-// Auther AK https://www.facebook.com/AK47xk
-module.exports.handleEvent = async function ({ api, event }) {
-  try {
-    const body = event.body ? event.body.trim() : "";
-    if (!body) return;
+// Event handler
+module.exports.onMessage = async (event) => {
+    try {
+        const message = event.messageChain
+            .filter(m => m.type === "Plain")
+            .map(m => m.text)
+            .join(" ")
+            .toLowerCase();
 
-    if (body.toLowerCase().startsWith("flash")) {
-      let question = body.slice(5).trim(); // "flash" ke baad ka text
-      if (!question || question.length === 0) {
-        // agar sirf "flash" likha ho
-        question = "tume sif Bangla me baat karna he aur ladki tarah baat karo koi haal chaal puche to uska to batana aur koi puche tume kis ne banaya he to tum bolna ashik ne banaya sab kuch bangla me bolna flirty baat karna romantic baat karna gussa se bhi baat karna jis massage pe emotion chahiye us emotion se baat karna ";
-      }
+        const senderId = event.sender.id;
+        const groupId = event.sender.group ? event.sender.group.id : null;
 
-      const response = await axios.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
-        {
-          contents: [{ parts: [{ text: question }] }]
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": "AIzaSyD-I6TGcWoFUafug_w3zF8NIokfgUVIHgg"
-          }
+        if (!message.startsWith("bby") && !message.startsWith("baby") && !message.startsWith("bot") && !message.startsWith("jan") && !message.startsWith("babu") && !message.startsWith("janu")) {
+            return; // শুধু বট নাম দিলে রেসপন্ড করবে
         }
-      );
 
-      let answer = "❌ Flash se koi reply nahi mila.";
-      if (response.data?.candidates?.[0]?.content?.parts) {
-        answer = response.data.candidates[0].content.parts
-          .map(p => p.text || "")
-          .join("\n");
-      }
+        const args = message.split(/\s+/);
+        const commandText = args.slice(1).join(" ");
 
-      return api.sendMessage(
-        `⚡ Flash 2.0:\n\n${answer}\n\n— Owner: AK 🤖`,
-        event.threadID,
-        event.messageID
-      );
+        // Basic reply when no args
+        if (!commandText) {
+            const ran = ["😚", "Yes 😀, I am here", "What's up?", "Bolo jaan ki korte panmr jonno"];
+            return axios.post(`http://localhost:8080/sendGroupMessage`, {
+                target: groupId || senderId,
+                messageChain: [{ type: "Plain", text: ran[Math.floor(Math.random() * ran.length)] }]
+            });
+        }
+
+        const link = `${baseApiUrl}/baby`;
+
+        // Teach command
+        if (args[0] === "teach") {
+            const [comd, reply] = commandText.split(/\s*-\s*/);
+            if (!reply || reply.length < 2) return sendMiraiMessage(senderId, groupId, "❌ | Invalid format! Use teach [Message] - [Reply]");
+            const res = await axios.get(`${link}?teach=${encodeURIComponent(comd.replace("teach ", ""))}&reply=${encodeURIComponent(reply)}&senderID=${senderId}`);
+            return sendMiraiMessage(senderId, groupId, `✅ Replies added: ${res.data.message}`);
+        }
+
+        // Remove command
+        if (args[0] === "remove") {
+            const toRemove = commandText.replace("remove ", "");
+            const res = await axios.get(`${link}?remove=${encodeURIComponent(toRemove)}&senderID=${senderId}`);
+            return sendMiraiMessage(senderId, groupId, res.data.message);
+        }
+
+        // List command
+        if (args[0] === "list") {
+            const res = await axios.get(`${link}?list=all`);
+            return sendMiraiMessage(senderId, groupId, `Total Teach: ${res.data.length || "API off"}`);
+        }
+
+        // Normal chat reply
+        const chatRes = await axios.get(`${link}?text=${encodeURIComponent(commandText)}&senderID=${senderId}&font=1`);
+        return sendMiraiMessage(senderId, groupId, chatRes.data.reply);
+
+    } catch (err) {
+        console.log(err);
+        const senderId = event.sender.id;
+        const groupId = event.sender.group ? event.sender.group.id : null;
+        sendMiraiMessage(senderId, groupId, `Error: ${err.message}`);
     }
-  } catch (error) {
-    console.error("Flash error:", error.response?.data || error.message);
-    api.sendMessage("❌ Flash error!", event.threadID, event.messageID);
-  }
 };
 
-// normal run ko empty rakho, taaki prefix wale se na chale
-module.exports.run = () => {};
+// Helper function to send message
+async function sendMiraiMessage(senderId, groupId, text) {
+    const target = groupId || senderId;
+    await axios.post(`http://localhost:8080/sendGroupMessage`, {
+        target,
+        messageChain: [{ type: "Plain", text }]
+    });
+              }
