@@ -1,6 +1,6 @@
 const fs = require("fs");
 module.exports.config = {
-	name: "Ashik",
+	name: "ashik",
   	version: "1.0.1",
 	hasPermssion: 0,
 	credits: "Ashikur Rahman", 
@@ -17,7 +17,7 @@ module.exports.handleEvent = function({ api, event }) {
 		event.body.indexOf("@Ashikur Rahman")==0 || 
 		event.body.indexOf("@𝐓ɽ͜͡𝐮𝐬ʈ 𝐌̽𝐞 𝐁𝐚͜͡𝐛ɣ̈̈›› 𝐈 𝐖ɪ̽ɭɭ ဗီူံ ๛⃝𓆩𝐁ɽ͜͡𝐞̽ɑ̽𝐤 𝐘ǿ𝐮̽ɾ 𝐇𝐞̽𝐚͜͡𝐫ʈﮩﮩــﮩــــ𓆩  𓆪〘̶𑁍 〘̶𑁍𓆩⃝Ashik𓆪 † 』𓆩๏̬̬̬̬̬̬𓆪†『٭𝐱͜͡⃝ᴆ』†٭❯")==0 || 
 		event.body.indexOf("@Ashikur Rahman")==0 || 
-		event.body.indexOf("Priyansh")==0
+		event.body.indexOf("Ashik")==0
 	) {
 		var msg = {
 			body: "Ashik ✨💖🥀",
