@@ -35,6 +35,3 @@ module.exports.run = async ({ event, api }) => {
 
   return api.sendMessage(msg, event.threadID, event.messageID);
 };
-
-
-all command show stylish
