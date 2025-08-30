@@ -1,74 +1,59 @@
 module.exports.config = {
   name: "help",
-  version: "1.4.0",
+  version: "1.2.0",
   hasPermssion: 0,
   credits: "ASHIK",
-  description: "Show all commands with fancy box and emojis",
+  description: "Show all commands in big boxes",
   commandCategory: "system",
   usages: "[help]",
   cooldowns: 3
-};
-
-const commandEmojis = {
-  info: "ℹ️",
-  mm: "💾",
-  red: "🔴",
-  shayri: "✍️",
-  sub: "🎶",
-  tea: "🍵",
-  "6mui": "📸",
-  bio: "📝",
-  googlebar: "🌐",
-  obama: "🗣️",
-  offbot: "⏹️",
-  rank: "🏆",
-  rushia: "🎀",
-  search: "🔍",
-  trump: "🦅",
-  job: "💼",
-  acp: "👥",
-  ckbot: "🤖",
-  adc: "🛠️",
-  // Add more commands here
 };
 
 module.exports.run = async ({ event, api }) => {
   const { commands } = global.client;
   const prefix = global.config.PREFIX || "/";
 
-  if (!commands || commands.size === 0)
+  if (!commands || commands.size === 0) 
     return api.sendMessage("⚠️ কোনো কমান্ড পাওয়া যায়নি!", event.threadID, event.messageID);
 
   const commandArray = Array.from(commands.values());
-  let msg = "════════════════════════════════════════════\n";
 
-  for (let i = 0; i < commandArray.length; i += 2) {
-    const left = commandArray[i];
-    const right = commandArray[i + 1];
+  let msgParts = [];
 
-    const leftEmoji = commandEmojis[left.config.name] || "⚡";
-    const rightEmoji = right ? commandEmojis[right.config.name] || "⚡" : "";
+  // প্রতিটি কমান্ড আলাদা বড় বক্সে
+  commandArray.forEach(cmd => {
+    const emoji = cmd.config.emoji || "⚡"; // যদি কমান্ডে ইমোজি define থাকে, তা নাও, নাহলে default
+    const usage = cmd.config.usages ? cmd.config.usages : "";
+    const description = cmd.config.description ? cmd.config.description : "No description";
 
-    // Left command box
-    msg += `╔════════════════════╗`;
-    if (right) msg += `    ╔════════════════════╗`;
-    msg += "\n";
+    const box = `╔══════════════════════════════════════╗
+║ ${emoji} ${prefix}${cmd.config.name} ${usage}
+║ ${description}
+╚══════════════════════════════════════╝`;
 
-    msg += `║ ${leftEmoji} ${prefix}${left.config.name} ${left.config.usages || ""} `.padEnd(22) + `║`;
-    if (right) msg += `    ║ ${rightEmoji} ${prefix}${right.config.name} ${right.config.usages || ""} `.padEnd(22) + `║`;
-    msg += "\n";
+    msgParts.push(box);
+  });
 
-    msg += `║ ${left.config.description || "No description"} `.padEnd(22) + `║`;
-    if (right) msg += `    ║ ${right.config.description || "No description"} `.padEnd(22) + `║`;
-    msg += "\n";
+  // Bot Owner info
+  const ownerBox = `╔══════════════════════════════════════╗
+║ 💎 Bot Owner: ASHIK
+║ 📌 Tip: ব্যবহার করতে → ${prefix}command
+╚══════════════════════════════════════╝`;
 
-    msg += `╚════════════════════╝`;
-    if (right) msg += `    ╚════════════════════╝`;
-    msg += "\n────────────────────────────────────────────\n";
+  msgParts.push(ownerBox);
+
+  // Mirai-compatible: Send message in chunks if too long
+  const CHUNK_SIZE = 4000;
+  let fullMsg = "";
+  for (let i = 0; i < msgParts.length; i++) {
+    if ((fullMsg + msgParts[i] + "\n").length > CHUNK_SIZE) {
+      await api.sendMessage(fullMsg, event.threadID, event.messageID);
+      fullMsg = "";
+    }
+    fullMsg += msgParts[i] + "\n\n";
   }
 
-  msg += `💎 Bot Owner: ASHIK\n📌 Tip: ব্যবহার করতে → ${prefix}command\n`;
-  msg += `════════════════════════════════════════════`;
-
-  return api.sendMessage(msg, event.threadID, event.messageID);
+  if (fullMsg.length > 0) {
+    await api.sendMessage(fullMsg, event.threadID, event.messageID);
+  }
 };
