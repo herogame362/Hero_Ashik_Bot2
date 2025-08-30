@@ -1,45 +1,82 @@
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
+const Jimp = require("jimp");
 
-module.exports = {
-  config: {
-    name: "genv",
-    version: "2.0",
-    hasPermssion: 0,
-    credits: "Raj",
-    description: "Generate AI image using prompt",
-    commandCategory: "ai",
-    usages: "generate <prompt>",
-    cooldowns: 3
-  },
+module.exports.config = {
+  name: "generate",
+  version: "2.2",
+  hasPermssion: 0,
+  credits: "Raj (Modified by Aria)",
+  description: "Generate AI image using prompt (crop watermark adjustable)",
+  commandCategory: "ai",
+  usages: "generate <prompt> [cropPercent]",
+  cooldowns: 3
+};
 
-  onStart: async function ({ api, event, args }) {
-    const prompt = args.join(" ");
-    if (!prompt) return api.sendMessage("⚠️ | Please provide a prompt.\n\nExample: generate flying boy raj", event.threadID, event.messageID);
+module.exports.run = async function ({ api, event, args }) {
+  if (!args[0]) return api.sendMessage(
+    "⚠️ | Please provide a prompt.\n\nExample: generate flying boy raj 10",
+    event.threadID,
+    event.messageID
+  );
 
-    const loading = await api.sendMessage(`🎨 | Generating image for: "${prompt}"...`, event.threadID);
+  // Last arg can be crop percentage if numeric
+  let cropPercent = 10; // default 10%
+  if (!isNaN(args[args.length - 1])) {
+    cropPercent = parseInt(args.pop());
+    if (cropPercent < 0 || cropPercent > 50) cropPercent = 10; // safety limit
+  }
 
-    try {
-      // Ensure cache folder exists
-      const cacheDir = path.join(__dirname, "cache");
-      fs.ensureDirSync(cacheDir);
+  const prompt = args.join(" ");
+  if (!prompt) return api.sendMessage(
+    "⚠️ | Please provide a prompt.",
+    event.threadID,
+    event.messageID
+  );
 
-      const res = await axios.get(`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`, {
-        responseType: 'arraybuffer'
-      });
+  const loadingMsg = await api.sendMessage(
+    `🎨 | Generating image for: "${prompt}" with ${cropPercent}% crop...`,
+    event.threadID
+  );
 
-      const imagePath = path.join(cacheDir, `${Date.now()}_gen.jpg`);
-      fs.writeFileSync(imagePath, res.data);
+  try {
+    // Ensure cache folder exists
+    const cacheDir = path.join(__dirname, "cache");
+    fs.ensureDirSync(cacheDir);
 
-      api.sendMessage({
+    // Download image from Pollinations
+    const res = await axios.get(
+      `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`,
+      { responseType: "arraybuffer" }
+    );
+
+    const imagePath = path.join(cacheDir, `${Date.now()}_gen.jpg`);
+    fs.writeFileSync(imagePath, res.data);
+
+    // Load image with Jimp
+    const image = await Jimp.read(imagePath);
+    const cropHeight = Math.floor(image.bitmap.height * (1 - cropPercent / 100));
+    image.crop(0, 0, image.bitmap.width, cropHeight);
+    await image.writeAsync(imagePath);
+
+    // Send cropped image
+    api.sendMessage(
+      {
         body: `✅ | Prompt: "${prompt}"`,
         attachment: fs.createReadStream(imagePath)
-      }, event.threadID, () => fs.unlinkSync(imagePath), loading.messageID);
+      },
+      event.threadID,
+      () => fs.unlinkSync(imagePath),
+      loadingMsg.messageID
+    );
 
-    } catch (err) {
-      console.error(err);
-      api.sendMessage("❌ | Failed to generate image. Try again later.", event.threadID, event.messageID);
-    }
+  } catch (err) {
+    console.error(err);
+    api.sendMessage(
+      "❌ | Failed to generate image. Try again later.",
+      event.threadID,
+      event.messageID
+    );
   }
 };
