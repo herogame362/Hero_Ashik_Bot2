@@ -1,9 +1,9 @@
 module.exports.config = {
   name: "help",
-  version: "1.2.0",
+  version: "1.1.0",
   hasPermssion: 0,
   credits: "ASHIK",
-  description: "Show all commands in big boxes",
+  description: "Show all commands",
   commandCategory: "system",
   usages: "[help]",
   cooldowns: 3
@@ -18,42 +18,21 @@ module.exports.run = async ({ event, api }) => {
 
   const commandArray = Array.from(commands.values());
 
-  let msgParts = [];
+  let msg = `╔═════════════════════╗
+║      ✨ 𝗛𝗘𝗟𝗣 𝗠𝗘𝗡𝗨 ✨      ║
+╚═════════════════════╝\n\n`;
 
-  // প্রতিটি কমান্ড আলাদা বড় বক্সে
-  commandArray.forEach(cmd => {
-    const emoji = cmd.config.emoji || "⚡"; // যদি কমান্ডে ইমোজি define থাকে, তা নাও, নাহলে default
-    const usage = cmd.config.usages ? cmd.config.usages : "";
-    const description = cmd.config.description ? cmd.config.description : "No description";
-
-    const box = `╔══════════════════════════════════════╗
-║ ${emoji} ${prefix}${cmd.config.name} ${usage}
-║ ${description}
-╚══════════════════════════════════════╝`;
-
-    msgParts.push(box);
+  commandArray.forEach((cmd, index) => {
+    msg += `┏━━━━━━━━━━━━━━━━━━━━┓\n`;
+    msg += `┃ ⚡ ${prefix}${cmd.config.name} ${cmd.config.usages || ""}\n`;
+    msg += `┃ 📌 ${cmd.config.description || "No description"}\n`;
+    msg += `┗━━━━━━━━━━━━━━━━━━━━┛\n\n`;
   });
 
-  // Bot Owner info
-  const ownerBox = `╔══════════════════════════════════════╗
-║ 💎 Bot Owner: ASHIK
+  msg += `╔═════════════════════╗
+║ 💎 𝗕𝗼𝘁 𝗢𝘄𝗻𝗲𝗿: ASHIK
 ║ 📌 Tip: ব্যবহার করতে → ${prefix}command
-╚══════════════════════════════════════╝`;
+╚═════════════════════╝`;
 
-  msgParts.push(ownerBox);
-
-  // Mirai-compatible: Send message in chunks if too long
-  const CHUNK_SIZE = 4000;
-  let fullMsg = "";
-  for (let i = 0; i < msgParts.length; i++) {
-    if ((fullMsg + msgParts[i] + "\n").length > CHUNK_SIZE) {
-      await api.sendMessage(fullMsg, event.threadID, event.messageID);
-      fullMsg = "";
-    }
-    fullMsg += msgParts[i] + "\n\n";
-  }
-
-  if (fullMsg.length > 0) {
-    await api.sendMessage(fullMsg, event.threadID, event.messageID);
-  }
+  return api.sendMessage(msg, event.threadID, event.messageID);
 };
