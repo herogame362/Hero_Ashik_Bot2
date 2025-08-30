@@ -21,11 +21,15 @@ module.exports = {
     const loading = await api.sendMessage(`🎨 | Generating image for: "${prompt}"...`, event.threadID);
 
     try {
+      // Ensure cache folder exists
+      const cacheDir = path.join(__dirname, "cache");
+      fs.ensureDirSync(cacheDir);
+
       const res = await axios.get(`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`, {
         responseType: 'arraybuffer'
       });
 
-      const imagePath = path.join(__dirname, "cache", `${Date.now()}_gen.jpg`);
+      const imagePath = path.join(cacheDir, `${Date.now()}_gen.jpg`);
       fs.writeFileSync(imagePath, res.data);
 
       api.sendMessage({
