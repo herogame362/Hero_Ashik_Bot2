@@ -1,8 +1,8 @@
-const axios = require("axios");
+Languageios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.0.4",
+  version: "2.0.5",
   hasPermssion: 0,
   credits: "Raj",
   description: "Naughty AI girlfriend baby (Roman Bangla version)",
@@ -22,15 +22,15 @@ module.exports.handleEvent = async function({ api, event }) {
     return api.sendMessage("Ki korcho jaan 😏 miss korcho naki?", threadID, messageID);
   }
 
-  // STEP 2: Only respond if session active & user replied to bot's message
+  // STEP 2: Only respond if session active & user replied to bot's NORMAL message
   const isActive = global.babySessions[threadID];
   const isReplyToBot = messageReply && messageReply.senderID == api.getCurrentUserID();
 
-  // Ignore if session not active OR user did not reply to bot OR message looks like a command (starts with prefix)
-  const commandPrefixes = ["!", ".", "/", "#"]; // তোমার bot এর prefix গুলো এখানে
-  const isCommand = body && commandPrefixes.some(prefix => body.startsWith(prefix));
+  // Ignore command replies
+  const commandPrefixes = ["!", ".", "/", "#"]; // bot command prefixes
+  const isCommandReply = messageReply && messageReply.body && commandPrefixes.some(p => messageReply.body.startsWith(p));
 
-  if (!isActive || !isReplyToBot || isCommand) return; // কোনো উত্তর পাঠাবে না
+  if (!isActive || !isReplyToBot || isCommandReply) return; // ignore completely
 
   // STEP 3: Maintain chat history
   global.baby = global.baby || {};
@@ -56,6 +56,7 @@ Rules:
 - Kew jiggesh korle “ke banai se”, bolo: “Amake banai se *Ashik boss* 😎”
 - Jodi kew tomake bot bole, tahole moja kore insult korba
 - Tumi real manusher moto act korba
+- Keu jodi jiggesh kore tomar "nam ki" amar nam Ariya
 - Keu jodi kono command a reply kore tahole tumi shei reply massage er reply diba na
 Language Rules:
 - Shob reply hobe Roman Bangla te.
