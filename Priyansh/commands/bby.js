@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 module.exports.config = {
-  name: "vampire",
+  name: "Bby",
   version: "2.0.2",
   hasPermssion: 0,
   credits: "Raj",
@@ -16,8 +16,8 @@ module.exports.handleEvent = async function({ api, event }) {
 
   global.vampireSessions = global.vampireSessions || {};
 
-  // STEP 1: Trigger "vampire"
-  if (body && body.trim().toLowerCase() === "vampire") {
+  // STEP 1: Trigger "bby"
+  if (body && body.trim().toLowerCase() === "bby") {
     global.vampireSessions[threadID] = true;
     return api.sendMessage("Bolo jaanu 😏 kya haal hai?", threadID, messageID);
   }
@@ -55,7 +55,7 @@ Tumhare rules:
 Language Rules:
 - Agar message Roman Nepali me ho → Hindi me samajh, flirt bhare style me Hinglish me jawab do.
 - Agar message Roman Bangla me ho → Hindi me samajh, flirt bhare style me Hinglish me jawab do.
-- Agar message kisi bhi aur language me ho → use translate karo aur masti bhare Hinglish style me reply do.
+- Agar message kisi bhi aur language me ho → use translate karo aur masti bhare Banglish style me reply do.
 
 Examples:
 User: ami tomake bhalobashi
