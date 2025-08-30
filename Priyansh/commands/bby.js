@@ -2,10 +2,10 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.0.6",
+  version: "2.0.3",
   hasPermssion: 0,
-  credits: "Raj",
-  description: "Naughty AI boyfriend baby (Roman Bangla version)",
+  credits: "Ashik",
+  description: "Naughty AI girlfriend baby (Roman Bangla version)",
   commandCategory: "ai",
   usages: "baby",
   cooldowns: 2
@@ -16,17 +16,16 @@ module.exports.handleEvent = async function({ api, event }) {
 
   global.babySessions = global.babySessions || {};
 
-  // STEP 1: Trigger "baby" command
+  // STEP 1: Trigger "baby"
   if (body && body.trim().toLowerCase() === "baby") {
-    // session-এ active এবং lastMessageID রাখছি
-    global.babySessions[threadID] = { active: true, lastMessageID: messageID };
-    return api.sendMessage("Ki korcho jaanu 😏 miss korcho naki?", threadID, messageID);
+    global.babySessions[threadID] = true;
+    return api.sendMessage("Ki korcho jaan 😏 miss korcho naki?", threadID, messageID);
   }
 
-  // STEP 2: Only reply to the original "baby" message
-  const session = global.babySessions[threadID];
-  const isReplyToBabyCommand = messageReply && session && messageReply.messageID == session.lastMessageID;
-  if (!isReplyToBabyCommand) return; // অন্য সব reply/command ignore হবে
+  // STEP 2: Only active session
+  const isActive = global.babySessions[threadID];
+  const isReplyTobaby = messageReply && messageReply.senderID == api.getCurrentUserID();
+  if (!isActive || !isReplyTobaby) return;
 
   // Chat history
   global.baby = global.baby || {};
@@ -34,7 +33,7 @@ module.exports.handleEvent = async function({ api, event }) {
   const chatHistory = global.baby.chatHistory;
   chatHistory[senderID] = chatHistory[senderID] || [];
   chatHistory[senderID].push(`User: ${body}`);
-  if (chatHistory[senderID].length > 6) chatHistory[senderID].shift(); // সর্বোচ্চ ৬ মেসেজ রাখছি
+  if (chatHistory[senderID].length > 6) chatHistory[senderID].shift();
 
   const fullChat = chatHistory[senderID].join("\n");
 
@@ -42,14 +41,14 @@ module.exports.handleEvent = async function({ api, event }) {
   const prompt = `
 Tumi ekta naughty, romantic, confident chele — jhar naam baby.
 Tumi shudhu Roman Bangla (Bangla in English alphabets) te reply korba, emoji diye.
-Tumi shobar shathe prem kore kotha bolba, boyfriend er moto behave korba.  
+Tumi shobar shathe prem kore kotha bolba, girlfriend er moto behave korba.  
 Shob reply hobe choto (1-2 line, max 50 word).
 
 Rules:
 - Jara bhalobasha kore, oder sathe misti + flirty vabe kotha bolo 😉
 - Jara badtameezi korbe, oder moja kore roast korba 😈
 - Kono emoji pele sei mood e reply korba
-- Kew jiggesh korle “ke banayecho”, bolo: “Amake banayecho *Raj Boss* 😎”
+- Kew jiggesh korle “tomake ke banai se”, bolo: “Amake banai se *Ashik* 😎”
 - Jodi kew tomake bot bole, tahole moja kore insult korba
 - Tumi real manusher moto act korba
 
@@ -73,7 +72,7 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
     return api.sendMessage(botReply, threadID, messageID);
   } catch (err) {
     console.error("Pollinations error:", err.message);
-    return api.sendMessage("Sorry jaanu 😅 baby ekhon busy ache...", threadID, messageID);
+    return api.sendMessage("Sorry jaan 😅 baby ekhon busy ache...", threadID, messageID);
   }
 };
 
