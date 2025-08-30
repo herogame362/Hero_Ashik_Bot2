@@ -1,87 +1,60 @@
-Languageios = require("axios");
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports.config = {
-  name: "baby",
-  version: "2.0.5",
+  name: "generate",
+  version: "2.0",
   hasPermssion: 0,
-  credits: "Raj",
-  description: "Naughty AI girlfriend baby (Roman Bangla version)",
+  credits: "Raj (Fixed by Aria)",
+  description: "Generate AI image using prompt",
   commandCategory: "ai",
-  usages: "baby",
-  cooldowns: 2
+  usages: "generate <prompt>",
+  cooldowns: 3
 };
 
-module.exports.handleEvent = async function({ api, event }) {
-  const { threadID, messageID, senderID, body, messageReply } = event;
+module.exports.run = async function ({ api, event, args }) {
+  const prompt = args.join(" ");
+  if (!prompt) return api.sendMessage(
+    "⚠️ | Please provide a prompt.\n\nExample: generate flying boy raj",
+    event.threadID,
+    event.messageID
+  );
 
-  global.babySessions = global.babySessions || {};
-
-  // STEP 1: Trigger "baby"
-  if (body && body.trim().toLowerCase() === "baby") {
-    global.babySessions[threadID] = true;
-    return api.sendMessage("Ki korcho jaan 😏 miss korcho naki?", threadID, messageID);
-  }
-
-  // STEP 2: Only respond if session active & user replied to bot's NORMAL message
-  const isActive = global.babySessions[threadID];
-  const isReplyToBot = messageReply && messageReply.senderID == api.getCurrentUserID();
-
-  // Ignore command replies
-  const commandPrefixes = ["!", ".", "/", "#"]; // bot command prefixes
-  const isCommandReply = messageReply && messageReply.body && commandPrefixes.some(p => messageReply.body.startsWith(p));
-
-  if (!isActive || !isReplyToBot || isCommandReply) return; // ignore completely
-
-  // STEP 3: Maintain chat history
-  global.baby = global.baby || {};
-  global.baby.chatHistory = global.baby.chatHistory || {};
-  const chatHistory = global.baby.chatHistory;
-  chatHistory[senderID] = chatHistory[senderID] || [];
-  chatHistory[senderID].push(`User: ${body}`);
-  if (chatHistory[senderID].length > 6) chatHistory[senderID].shift();
-
-  const fullChat = chatHistory[senderID].join("\n");
-
-  // STEP 4: Prepare prompt
-  const prompt = `
-Tumi ekta naughty, romantic, confident chele — jhar naam baby.
-Tumi shudhu Roman Bangla (Bangla in English alphabets) te reply korba, emoji diye.
-Tumi shobar shathe prem kore kotha bolba, girlfriend er moto behave korba.  
-Shob reply hobe choto (1-2 line, max 50 word).
-
-Rules:
-- Jara bhalobasha kore, oder sathe misti + flirty vabe kotha bolo 😉
-- Jara badtameezi korbe, oder moja kore roast korba 😈
-- Kono emoji pele sei mood e reply korba
-- Kew jiggesh korle “ke banai se”, bolo: “Amake banai se *Ashik boss* 😎”
-- Jodi kew tomake bot bole, tahole moja kore insult korba
-- Tumi real manusher moto act korba
-- Keu jodi jiggesh kore tomar "nam ki" amar nam Ariya
-- Keu jodi kono command a reply kore tahole tumi shei reply massage er reply diba na
-Language Rules:
-- Shob reply hobe Roman Bangla te.
-- Kew onno language use korle, take translate kore misti Roman Bangla te reply dite hobe.
-
-Examples:
-User: ami tomake bhalobashi
-→ Reply: Aww eto bhalobasha? ekta mishti kiss toh paowa uchit na 😌
-
-Now continue the chat based on recent conversation:\n\n${fullChat}
-`;
+  const loadingMsg = await api.sendMessage(
+    `🎨 | Generating image for: "${prompt}"...`,
+    event.threadID
+  );
 
   try {
-    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}`;
-    const res = await axios.get(url);
-    const botReply = (typeof res.data === "string" ? res.data : JSON.stringify(res.data)).trim();
+    // Ensure cache folder exists
+    const cacheDir = path.join(__dirname, "cache");
+    fs.ensureDirSync(cacheDir);
 
-    chatHistory[senderID].push(`baby: ${botReply}`);
-    return api.sendMessage(botReply, threadID, messageID);
+    const res = await axios.get(
+      `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`,
+      { responseType: "arraybuffer" }
+    );
+
+    const imagePath = path.join(cacheDir, `${Date.now()}_gen.jpg`);
+    fs.writeFileSync(imagePath, res.data);
+
+    api.sendMessage(
+      {
+        body: `✅ | Prompt: "${prompt}"`,
+        attachment: fs.createReadStream(imagePath)
+      },
+      event.threadID,
+      () => fs.unlinkSync(imagePath),
+      loadingMsg.messageID
+    );
+
   } catch (err) {
-    console.error("Pollinations error:", err.message);
-    return api.sendMessage("Sorry jaan 😅 baby ekhon busy ache...", threadID, messageID);
+    console.error(err);
+    api.sendMessage(
+      "❌ | Failed to generate image. Try again later.",
+      event.threadID,
+      event.messageID
+    );
   }
-};
-
-module.exports.run = async function({ api, event }) {
-  return api.sendMessage("Amake chat korte hole 'baby' likhe start koro 😎, tarpor amar message e reply dao.", event.threadID, event.messageID);
 };
