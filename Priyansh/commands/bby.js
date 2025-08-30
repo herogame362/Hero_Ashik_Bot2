@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.0.3",
+  version: "2.0.4",
   hasPermssion: 0,
   credits: "Raj",
   description: "Naughty AI girlfriend baby (Roman Bangla version)",
@@ -22,12 +22,17 @@ module.exports.handleEvent = async function({ api, event }) {
     return api.sendMessage("Ki korcho jaan 😏 miss korcho naki?", threadID, messageID);
   }
 
-  // STEP 2: Only active session
+  // STEP 2: Only respond if session active & user replied to bot's message
   const isActive = global.babySessions[threadID];
-  const isReplyTobaby = messageReply && messageReply.senderID == api.getCurrentUserID();
-  if (!isActive || !isReplyTobaby) return;
+  const isReplyToBot = messageReply && messageReply.senderID == api.getCurrentUserID();
 
-  // Chat history
+  // Ignore if session not active OR user did not reply to bot OR message looks like a command (starts with prefix)
+  const commandPrefixes = ["!", ".", "/", "#"]; // তোমার bot এর prefix গুলো এখানে
+  const isCommand = body && commandPrefixes.some(prefix => body.startsWith(prefix));
+
+  if (!isActive || !isReplyToBot || isCommand) return; // কোনো উত্তর পাঠাবে না
+
+  // STEP 3: Maintain chat history
   global.baby = global.baby || {};
   global.baby.chatHistory = global.baby.chatHistory || {};
   const chatHistory = global.baby.chatHistory;
@@ -37,7 +42,7 @@ module.exports.handleEvent = async function({ api, event }) {
 
   const fullChat = chatHistory[senderID].join("\n");
 
-  // Prompt (Roman Bangla personality)
+  // STEP 4: Prepare prompt
   const prompt = `
 Tumi ekta naughty, romantic, confident chele — jhar naam baby.
 Tumi shudhu Roman Bangla (Bangla in English alphabets) te reply korba, emoji diye.
