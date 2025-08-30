@@ -5,12 +5,12 @@ const Jimp = require("jimp");
 
 module.exports.config = {
   name: "generate",
-  version: "2.2",
+  version: "2.3",
   hasPermssion: 0,
   credits: "Raj (Modified by Aria)",
-  description: "Generate AI image using prompt (crop watermark adjustable)",
+  description: "Generate AI image using prompt (bottom watermark blur)",
   commandCategory: "ai",
-  usages: "generate <prompt> [cropPercent]",
+  usages: "generate <prompt> [blurPercent]",
   cooldowns: 3
 };
 
@@ -21,11 +21,11 @@ module.exports.run = async function ({ api, event, args }) {
     event.messageID
   );
 
-  // Last arg can be crop percentage if numeric
-  let cropPercent = 10; // default 10%
+  // Last arg can be blur percentage (default 10%)
+  let blurPercent = 10;
   if (!isNaN(args[args.length - 1])) {
-    cropPercent = parseInt(args.pop());
-    if (cropPercent < 0 || cropPercent > 50) cropPercent = 10; // safety limit
+    blurPercent = parseInt(args.pop());
+    if (blurPercent < 0 || blurPercent > 50) blurPercent = 10; // safety limit
   }
 
   const prompt = args.join(" ");
@@ -36,7 +36,7 @@ module.exports.run = async function ({ api, event, args }) {
   );
 
   const loadingMsg = await api.sendMessage(
-    `🎨 | Generating image for: "${prompt}" with ${cropPercent}% crop...`,
+    `🎨 | Generating image for: "${prompt}" with bottom watermark blur...`,
     event.threadID
   );
 
@@ -56,11 +56,16 @@ module.exports.run = async function ({ api, event, args }) {
 
     // Load image with Jimp
     const image = await Jimp.read(imagePath);
-    const cropHeight = Math.floor(image.bitmap.height * (1 - cropPercent / 100));
-    image.crop(0, 0, image.bitmap.width, cropHeight);
+
+    // Blur bottom portion (blurPercent of image height)
+    const blurHeight = Math.floor(image.bitmap.height * (blurPercent / 100));
+    const bottom = image.clone().crop(0, image.bitmap.height - blurHeight, image.bitmap.width, blurHeight);
+    bottom.blur(8); // intensity of blur
+    image.composite(bottom, 0, image.bitmap.height - blurHeight);
+
     await image.writeAsync(imagePath);
 
-    // Send cropped image
+    // Send image
     api.sendMessage(
       {
         body: `✅ | Prompt: "${prompt}"`,
