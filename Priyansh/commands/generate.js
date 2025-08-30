@@ -4,7 +4,7 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "generate",
+    name: "genv",
     version: "2.0",
     hasPermssion: 0,
     credits: "Raj",
