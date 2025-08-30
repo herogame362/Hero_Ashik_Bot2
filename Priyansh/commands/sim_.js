@@ -3,7 +3,7 @@ module.exports.config = {
     version: "4.3.7",
     hasPermssion: 0,
     credits: "Ashikur Rahman",
-    description: "\x43\x68\x61\x74\x20\x77\x69\x74\x68\x20\x73\x69\x6d\x73\x69\x6d\x69\x20\x41\x49\x2e\x20\x46\x69\x78\x65\x64\x20\x62\x79\x20\ud835\udc0f\ud835\udc2b\ud835\udc22\ud835\udc32\ud835\udc1a\ud835\udc27\ud835\udc2c\ud835\udc21\x20\ud835\udc11\ud835\udc1a\ud835\udc23\ud835\udc29\ud835\udc2e\ud835\udc2d",
+    description: "Chat with simsimi AI. Fixed by Ashikur Rahman",
     commandCategory: "Chat same sim",
     usages: "[args]",
     cooldowns: 5,
