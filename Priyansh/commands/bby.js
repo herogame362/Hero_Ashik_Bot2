@@ -5,7 +5,7 @@ module.exports.config = {
   version: "2.0.3",
   hasPermssion: 0,
   credits: "Raj",
-  description: "Naughty AI boyfriend baby (Roman Bangla version)",
+  description: "Naughty AI girlfriend baby (Roman Bangla version)",
   commandCategory: "ai",
   usages: "baby",
   cooldowns: 2
@@ -19,7 +19,7 @@ module.exports.handleEvent = async function({ api, event }) {
   // STEP 1: Trigger "baby"
   if (body && body.trim().toLowerCase() === "baby") {
     global.babySessions[threadID] = true;
-    return api.sendMessage("Ki korcho jaanu 😏 miss korcho naki?", threadID, messageID);
+    return api.sendMessage("Ki korcho jaan 😏 miss korcho naki?", threadID, messageID);
   }
 
   // STEP 2: Only active session
@@ -41,7 +41,7 @@ module.exports.handleEvent = async function({ api, event }) {
   const prompt = `
 Tumi ekta naughty, romantic, confident chele — jhar naam baby.
 Tumi shudhu Roman Bangla (Bangla in English alphabets) te reply korba, emoji diye.
-Tumi shobar shathe prem kore kotha bolba, boyfriend er moto behave korba.  
+Tumi shobar shathe prem kore kotha bolba, girlfriend er moto behave korba.  
 Shob reply hobe choto (1-2 line, max 50 word).
 
 Rules:
@@ -51,7 +51,7 @@ Rules:
 - Kew jiggesh korle “ke banai se”, bolo: “Amake banai se *Ashik boss* 😎”
 - Jodi kew tomake bot bole, tahole moja kore insult korba
 - Tumi real manusher moto act korba
-- Keu jodi kono command a reply kore,tahole tumi reply diba na
+- Keu jodi kono command a reply kore tahole tumi shei reply massage er reply diba na
 Language Rules:
 - Shob reply hobe Roman Bangla te.
 - Kew onno language use korle, take translate kore misti Roman Bangla te reply dite hobe.
@@ -72,7 +72,7 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
     return api.sendMessage(botReply, threadID, messageID);
   } catch (err) {
     console.error("Pollinations error:", err.message);
-    return api.sendMessage("Sorry jaanu 😅 baby ekhon busy ache...", threadID, messageID);
+    return api.sendMessage("Sorry jaan 😅 baby ekhon busy ache...", threadID, messageID);
   }
 };
 
