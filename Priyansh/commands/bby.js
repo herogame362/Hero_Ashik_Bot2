@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.0.4",
+  version: "2.0.6",
   hasPermssion: 0,
   credits: "Raj",
   description: "Naughty AI boyfriend baby (Roman Bangla version)",
@@ -16,16 +16,17 @@ module.exports.handleEvent = async function({ api, event }) {
 
   global.babySessions = global.babySessions || {};
 
-  // STEP 1: Trigger "baby"
+  // STEP 1: Trigger "baby" command
   if (body && body.trim().toLowerCase() === "baby") {
+    // session-এ active এবং lastMessageID রাখছি
     global.babySessions[threadID] = { active: true, lastMessageID: messageID };
     return api.sendMessage("Ki korcho jaanu 😏 miss korcho naki?", threadID, messageID);
   }
 
-  // STEP 2: Only active session & reply to bot's 'baby' message
+  // STEP 2: Only reply to the original "baby" message
   const session = global.babySessions[threadID];
-  const isReplyTobaby = messageReply && session && messageReply.messageID == session.lastMessageID;
-  if (!session?.active || !isReplyTobaby) return;
+  const isReplyToBabyCommand = messageReply && session && messageReply.messageID == session.lastMessageID;
+  if (!isReplyToBabyCommand) return; // অন্য সব reply/command ignore হবে
 
   // Chat history
   global.baby = global.baby || {};
@@ -33,7 +34,7 @@ module.exports.handleEvent = async function({ api, event }) {
   const chatHistory = global.baby.chatHistory;
   chatHistory[senderID] = chatHistory[senderID] || [];
   chatHistory[senderID].push(`User: ${body}`);
-  if (chatHistory[senderID].length > 6) chatHistory[senderID].shift();
+  if (chatHistory[senderID].length > 6) chatHistory[senderID].shift(); // সর্বোচ্চ ৬ মেসেজ রাখছি
 
   const fullChat = chatHistory[senderID].join("\n");
 
