@@ -1,3 +1,50 @@
-node_modules
-Horizon_database
-priyanshu-fca-main
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+*.log.*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cache / Temp
+.cache/
+tmp/
+temp/
+cache/
+
+# Build / Dist
+dist/
+build/
+out/
+
+# Database / custom folders
+Horizon_database/
+priyanshu-fca-main/
+
+# Coverage / Test
+coverage/
+.nyc_output/
+
+# IDE configs
+.vscode/
+.idea/
+*.swp
