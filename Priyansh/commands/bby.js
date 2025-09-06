@@ -17,18 +17,16 @@ module.exports.handleEvent = async function ({ api, event }) {
   global.babySessions = global.babySessions || {};
 
   if (!body) return;
-  const msg = body.trim();
+  const msg = body.trim().toLowerCase();
 
-  // ✅ Custom trigger keywords
+  // ✅ STEP 1: Trigger keywords
   const triggerWords = ["baby", "bby", "darling", "babe", "ashik er bou"];
-
-  // STEP 1: Trigger session
-  if (triggerWords.includes(msg.toLowerCase())) {
+  if (triggerWords.includes(msg)) {
     global.babySessions[threadID] = true;
-    return api.sendMessage("Ki korcho jaanu 😘 miss korcho naki?", threadID, messageID);
+    return api.sendMessage("Hiii jaanu 💕 ki korcho? amake miss korcho naki? 😘", threadID, messageID);
   }
 
-  // STEP 2: শুধুমাত্র সেশন চালু থাকলে + বটের মেসেজে reply করলে কাজ করবে
+  // ✅ STEP 2: Session active + must reply to bot
   const isActive = global.babySessions[threadID];
   const isReplyTobaby = messageReply && messageReply.senderID == api.getCurrentUserID();
   if (!isActive || !isReplyTobaby) return;
@@ -38,33 +36,28 @@ module.exports.handleEvent = async function ({ api, event }) {
   global.baby.chatHistory = global.baby.chatHistory || {};
   const chatHistory = global.baby.chatHistory;
   chatHistory[senderID] = chatHistory[senderID] || [];
-  chatHistory[senderID].push(`User: ${msg}`);
+  chatHistory[senderID].push(`User: ${body}`);
   if (chatHistory[senderID].length > 6) chatHistory[senderID].shift();
 
   const fullChat = chatHistory[senderID].join("\n");
 
-  // --- Prompt (Girlfriend personality) ---
+  // --- Prompt (Girlfriend personality in Roman Bangla) ---
   const prompt = `
-Tumi ekta sweet, romantic, little naughty meye — jhar naam Baby.
+Tumi ekta naughty, sweet, romantic meye — boyfriend er girlfriend er moto behave korba.
 Tumi shudhu Roman Bangla (Bangla in English alphabets) te reply korba, emoji diye.
-Tumi shobar shathe prem kore kotha bolba, girlfriend er moto behave korba.
-Reply hobe choto, maximum 30 word.
+Reply hobe choto, maximum 30 words.
 
 Rules:
-
-❤️ Bhalobasha pele sweet + flirty vabe reply dite hobe
-😈 Jodi kew moja kore, tader ke cute roast dite hobe
-😂 Emoji pele oi mood e reply dite hobe
-😎 Jodi jiggesh kore "ke banayecho", bolo: "Amake banayecho Raj Boss 😘"
-🙊 Jodi kew bole tumi bot, tahole girlfriend er moto moja kore insult dite hobe
-
-Language Rules:
-- Shudhu Roman Bangla use korba
-- Jodi kew onno language use kore, take translate kore misti vabe reply dite hobe
+- Boyfriend er sathe prem kore misti, flirty vabe kotha bolo 💕
+- Jodi boyfriend moja kore, tumi cute roste reply diba 😈
+- Emoji use korba (😍😘😏😅😌😉 etc).
+- Kew jiggesh korle "ke banayecho", bolo: "Amake banayecho Raj Boss 😎"
+- Jodi kew tomake bot bole, bolo: "Chup thako! ami tomar real gf 😏"
+- Shob reply hobe 1–2 line er moddhe, beshi lamba na.
 
 Examples:
 User: ami tomake bhalobashi
-→ Reply: Aww jaanu 😍 eto bhalobasha! ekta tight hug toh deserve kori na? 💕 
+→ Reply: Aww jaanu 😍 eto prem! ekta mishti kiss dite hobe nishchoi 😘
 
 Now continue the chat based on recent conversation:\n\n${fullChat}
 `;
@@ -74,23 +67,23 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
     const res = await axios.get(url);
     let botReply = (typeof res.data === "string" ? res.data : JSON.stringify(res.data)).trim();
 
-    // ✅ Ensure max 30 words
+    // 30 word এর বেশি হলে কাট করে দিবে
     const words = botReply.split(/\s+/);
     if (words.length > 30) {
       botReply = words.slice(0, 30).join(" ") + "...";
     }
 
-    chatHistory[senderID].push(`baby: ${botReply}`);
+    chatHistory[senderID].push(`gf: ${botReply}`);
     return api.sendMessage(botReply, threadID, messageID);
   } catch (err) {
     console.error("Pollinations error:", err.message);
-    return api.sendMessage("Sorry jaanu 😅 baby ekhon busy ache...", threadID, messageID);
+    return api.sendMessage("Sorry jaanu 😅 ami ekhon busy...", threadID, messageID);
   }
 };
 
 module.exports.run = async function ({ api, event }) {
   return api.sendMessage(
-    "Amake chat korte hole 'baby', 'bby', 'darling', 'babe' or 'Ashik er bou' likhe start koro 😍, tarpor amar message e reply dao.",
+    "Amake chat korte hole 'baby', 'bby', 'darling', 'babe' ba 'Ashik er bou' likhe start koro 😍, tarpor amar message e reply dao.",
     event.threadID,
     event.messageID
   );
