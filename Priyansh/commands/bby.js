@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.0.5",
+  version: "2.0.6",
   hasPermssion: 0,
   credits: "Raj (Modified by Aria)",
   description: "Naughty AI boyfriend baby (Roman Bangla version)",
@@ -16,31 +16,24 @@ module.exports.handleEvent = async function ({ api, event }) {
 
   global.babySessions = global.babySessions || {};
 
-  // যদি মেসেজ খালি হয় তবে রিটার্ন
+  // মেসেজ না থাকলে বের হয়ে যাবে
   if (!body) return;
-
-  // মেসেজ trim করে নাও (আগে/পরে স্পেস বাদ দেওয়ার জন্য)
   const msg = body.trim();
 
-  // ⛔ Step 0: Command prefix চেক
-  // যদি মেসেজ শুরু হয় / বা ! বা . দিয়ে, তখন বট রিপ্লাই করবে না
-  const commandPrefixes = ["/", "!", "."];
-  if (commandPrefixes.some(prefix => msg.startsWith(prefix))) {
-    return; // একদম বের হয়ে যাবে
-  }
-
-  // STEP 1: Trigger "baby"
+  // ✅ STEP 1: Trigger word "baby"
   if (msg.toLowerCase() === "baby") {
     global.babySessions[threadID] = true;
     return api.sendMessage("Ki korcho jaanu 😏 miss korcho naki?", threadID, messageID);
   }
 
-  // STEP 2: Only active session
+  // ✅ STEP 2: কেবল তখনই কাজ করবে যখন:
+  // 1) session on আছে, এবং
+  // 2) user বটের মেসেজে reply দিয়েছে
   const isActive = global.babySessions[threadID];
   const isReplyTobaby = messageReply && messageReply.senderID == api.getCurrentUserID();
   if (!isActive || !isReplyTobaby) return;
 
-  // Chat history
+  // --- Chat history ---
   global.baby = global.baby || {};
   global.baby.chatHistory = global.baby.chatHistory || {};
   const chatHistory = global.baby.chatHistory;
@@ -50,7 +43,7 @@ module.exports.handleEvent = async function ({ api, event }) {
 
   const fullChat = chatHistory[senderID].join("\n");
 
-  // Prompt (Roman Bangla personality)
+  // --- Prompt (Roman Bangla personality) ---
   const prompt = `
 Tumi ekta naughty, romantic, confident chele — jhar naam baby.
 Tumi shudhu Roman Bangla (Bangla in English alphabets) te reply korba, emoji diye.
