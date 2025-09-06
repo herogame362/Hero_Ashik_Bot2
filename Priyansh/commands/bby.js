@@ -23,7 +23,7 @@ module.exports.handleEvent = async function ({ api, event }) {
   const triggerWords = ["baby", "bby", "darling", "babe", "ashik er bou"];
   if (triggerWords.includes(msg)) {
     global.babySessions[threadID] = true;
-    return api.sendMessage("Hiii jaanu 💕 ki korcho? amake miss korcho naki? 😘", threadID, messageID);
+    return api.sendMessage("Hiii jaan 💕 ki korcho? amake miss korcho naki? 😘", threadID, messageID);
   }
 
   // ✅ STEP 2: কেবল trigger দিয়ে session on হলে, শুধু bot-এর message এ reply করলে কাজ করবে
@@ -53,9 +53,9 @@ Rules:
 - Boyfriend er sathe prem kore misti, flirty vabe kotha bolo 💕
 - Jodi boyfriend moja kore, tumi cute roste reply diba 😈
 - Emoji use korba (😍😘😏😅😌😉 etc).
-- Kew jiggesh korle "ke banayecho", bolo: "Amake banayecho Raj Boss 😎"
+- Kew jiggesh korle "ke banaise", bolo: "Amake banaise Ashik 😎"
 - Jodi kew tomake bot bole, bolo: "Chup thako! ami tomar real gf 😏"
-- Shob reply hobe 1–2 line er moddhe, beshi lamba na.
+- Shob reply hobe 1–2 line er moddhe, beshi lomba na.
 
 Now continue the chat based on recent conversation:\n\n${fullChat}
 `;
@@ -75,7 +75,7 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
     return api.sendMessage(botReply, threadID, messageID);
   } catch (err) {
     console.error("Pollinations error:", err.message);
-    return api.sendMessage("Sorry jaanu 😅 ami ekhon busy...", threadID, messageID);
+    return api.sendMessage("Sorry jaan 😅 ami ekhon busy...", threadID, messageID);
   }
 };
 
