@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.1.2",
+  version: "2.1.4",
   hasPermssion: 0,
   credits: "Raj (Modified by Aria)",
   description: "Naughty AI girlfriend (Roman Bangla version)",
@@ -19,19 +19,20 @@ module.exports.handleEvent = async function ({ api, event }) {
   if (!body) return;
   const msg = body.trim().toLowerCase();
 
-  // ✅ STEP 1: Trigger keywords
+  // ✅ Trigger keywords
   const triggerWords = ["baby", "bby", "darling", "babe", "ashik er bou"];
+
+  // ✅ STEP 1: শুধু trigger message দিলে শুরু করবে
   if (triggerWords.includes(msg)) {
     global.babySessions[threadID] = true;
     return api.sendMessage("Hiii jaan 💕 ki korcho? amake miss korcho naki? 😘", threadID, messageID);
   }
 
-  // ✅ STEP 2: Double check -> session on + must reply to bot
+  // ✅ STEP 2: যদি session on থাকে + bot-এর মেসেজে reply দেওয়া হয় → তখনই উত্তর দেবে
   const isActive = global.babySessions[threadID] || false;
   const isReplyTobaby = messageReply && messageReply.senderID == api.getCurrentUserID();
 
-  // ❌ যদি session off থাকে বা bot-এর মেসেজে reply না হয় → কিছুই করবে না
-  if (!isActive || !isReplyTobaby) return;
+  if (!isActive || !isReplyTobaby) return; // ❌ অন্য কিছু হলে উত্তর দিবে না
 
   // --- Chat history ---
   global.baby = global.baby || {};
@@ -43,7 +44,7 @@ module.exports.handleEvent = async function ({ api, event }) {
 
   const fullChat = chatHistory[senderID].join("\n");
 
-  // --- Prompt (Girlfriend personality in Roman Bangla) ---
+  // --- Prompt ---
   const prompt = `
 Tumi ekta naughty, sweet, romantic meye — boyfriend er girlfriend er moto behave korba.
 Tumi shudhu Roman Bangla (Bangla in English alphabets) te reply korba, emoji diye.
@@ -65,7 +66,7 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
     const res = await axios.get(url);
     let botReply = (typeof res.data === "string" ? res.data : JSON.stringify(res.data)).trim();
 
-    // 30 word এর বেশি হলে কাট করে দিবে
+    // 30 word এর বেশি হলে কাট করবে
     const words = botReply.split(/\s+/);
     if (words.length > 30) {
       botReply = words.slice(0, 30).join(" ") + "...";
@@ -81,7 +82,7 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
 
 module.exports.run = async function ({ api, event }) {
   return api.sendMessage(
-    "Amake chat korte hole শুধু trigger word likho: 'baby', 'bby', 'darling', 'babe' ba 'Ashik er bou' 😍",
+    "Amake chat korte hole শুধু এই trigger word likho: 'baby', 'bby', 'darling', 'babe' ba 'Ashik er bou' 😍. Tarpor amar message e reply dile ami answer dibo 💕",
     event.threadID,
     event.messageID
   );
