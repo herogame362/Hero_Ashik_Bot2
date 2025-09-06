@@ -2,10 +2,10 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.2.0",
+  version: "2.2.1",
   hasPermssion: 0,
   credits: "Raj (Modified by Aria)",
-  description: "Naughty AI girlfriend (Roman Bangla version) with teach feature",
+  description: "Naughty AI girlfriend (Roman Bangla version) with teacher-based teach feature",
   commandCategory: "ai",
   usages: "baby",
   cooldowns: 2
@@ -41,8 +41,9 @@ module.exports.handleEvent = async function ({ api, event }) {
   const chatHistory = global.baby.chatHistory;
   chatHistory[senderID] = chatHistory[senderID] || [];
 
-  // Teach mode: "teach: message" দিয়ে update
-  if (msg.startsWith("teach:")) {
+  // ✅ Teacher-based Teach mode
+  const TEACHER_ID = "INSERT_TEACHER_ID_HERE"; // এখানে teacher এর ID বসাও
+  if (msg.startsWith("teach:") && senderID === TEACHER_ID) {
     const teachMessage = msg.replace("teach:", "").trim();
     if (teachMessage.length > 0) {
       chatHistory[senderID].push(`User(teach): ${teachMessage}`);
@@ -94,7 +95,8 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
 
 module.exports.run = async function ({ api, event }) {
   return api.sendMessage(
-    "Amake chat korte hole শুধু trigger word likho: 'baby', 'bby', 'darling', 'babe' ba 'Ashik er bou' 😍. Tarpor amar message e reply dile ami answer dibo 💕\n\nTeach korte 'teach: tomer kotha' diye ami mone rekhe reply debo 😘",
+    "Amake chat korte hole শুধু trigger word likho: 'baby', 'bby', 'darling', 'babe' ba 'Ashik er bou' 😍. Tarpor amar message e reply dile ami answer dibo 💕\n\nTeacher " +
+    "শুধু 'teach: tomer message' দিলে ami mone rekhe reply দিবো 😘",
     event.threadID,
     event.messageID
   );
