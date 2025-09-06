@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.0.4",
+  version: "2.0.5",
   hasPermssion: 0,
   credits: "Raj (Modified by Aria)",
   description: "Naughty AI boyfriend baby (Roman Bangla version)",
@@ -19,13 +19,18 @@ module.exports.handleEvent = async function ({ api, event }) {
   // যদি মেসেজ খালি হয় তবে রিটার্ন
   if (!body) return;
 
-  // ⛔ Step 0: যদি মেসেজ কোনো কমান্ড হয় (/ ! . দিয়ে শুরু হলে), তখন রিপ্লাই করবে না
-  if (body.startsWith("/") || body.startsWith("!") || body.startsWith(".")) {
-    return;
+  // মেসেজ trim করে নাও (আগে/পরে স্পেস বাদ দেওয়ার জন্য)
+  const msg = body.trim();
+
+  // ⛔ Step 0: Command prefix চেক
+  // যদি মেসেজ শুরু হয় / বা ! বা . দিয়ে, তখন বট রিপ্লাই করবে না
+  const commandPrefixes = ["/", "!", "."];
+  if (commandPrefixes.some(prefix => msg.startsWith(prefix))) {
+    return; // একদম বের হয়ে যাবে
   }
 
   // STEP 1: Trigger "baby"
-  if (body.trim().toLowerCase() === "baby") {
+  if (msg.toLowerCase() === "baby") {
     global.babySessions[threadID] = true;
     return api.sendMessage("Ki korcho jaanu 😏 miss korcho naki?", threadID, messageID);
   }
@@ -40,7 +45,7 @@ module.exports.handleEvent = async function ({ api, event }) {
   global.baby.chatHistory = global.baby.chatHistory || {};
   const chatHistory = global.baby.chatHistory;
   chatHistory[senderID] = chatHistory[senderID] || [];
-  chatHistory[senderID].push(`User: ${body}`);
+  chatHistory[senderID].push(`User: ${msg}`);
   if (chatHistory[senderID].length > 6) chatHistory[senderID].shift();
 
   const fullChat = chatHistory[senderID].join("\n");
