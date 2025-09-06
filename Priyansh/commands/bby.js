@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.1.0",
+  version: "2.1.1",
   hasPermssion: 0,
   credits: "Raj (Modified by Aria)",
   description: "Naughty AI girlfriend (Roman Bangla version)",
@@ -26,9 +26,11 @@ module.exports.handleEvent = async function ({ api, event }) {
     return api.sendMessage("Hiii jaanu 💕 ki korcho? amake miss korcho naki? 😘", threadID, messageID);
   }
 
-  // ✅ STEP 2: Session active + must reply to bot
+  // ✅ STEP 2: কেবল trigger দিয়ে session on হলে, শুধু bot-এর message এ reply করলে কাজ করবে
   const isActive = global.babySessions[threadID];
   const isReplyTobaby = messageReply && messageReply.senderID == api.getCurrentUserID();
+
+  // session না থাকলে বা reply না হলে কিছু করবে না
   if (!isActive || !isReplyTobaby) return;
 
   // --- Chat history ---
@@ -55,10 +57,6 @@ Rules:
 - Jodi kew tomake bot bole, bolo: "Chup thako! ami tomar real gf 😏"
 - Shob reply hobe 1–2 line er moddhe, beshi lamba na.
 
-Examples:
-User: ami tomake bhalobashi
-→ Reply: Aww jaanu 😍 eto prem! ekta mishti kiss dite hobe nishchoi 😘
-
 Now continue the chat based on recent conversation:\n\n${fullChat}
 `;
 
@@ -83,7 +81,7 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
 
 module.exports.run = async function ({ api, event }) {
   return api.sendMessage(
-    "Amake chat korte hole 'baby', 'bby', 'darling', 'babe' ba 'Ashik er bou' likhe start koro 😍, tarpor amar message e reply dao.",
+    "Amake chat korte hole শুধু trigger word likho: 'baby', 'bby', 'darling', 'babe' ba 'Ashik er bou' 😍",
     event.threadID,
     event.messageID
   );
