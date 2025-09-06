@@ -2,7 +2,7 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "baby",
-  version: "2.1.1",
+  version: "2.1.2",
   hasPermssion: 0,
   credits: "Raj (Modified by Aria)",
   description: "Naughty AI girlfriend (Roman Bangla version)",
@@ -26,11 +26,11 @@ module.exports.handleEvent = async function ({ api, event }) {
     return api.sendMessage("Hiii jaan 💕 ki korcho? amake miss korcho naki? 😘", threadID, messageID);
   }
 
-  // ✅ STEP 2: কেবল trigger দিয়ে session on হলে, শুধু bot-এর message এ reply করলে কাজ করবে
-  const isActive = global.babySessions[threadID];
+  // ✅ STEP 2: Double check -> session on + must reply to bot
+  const isActive = global.babySessions[threadID] || false;
   const isReplyTobaby = messageReply && messageReply.senderID == api.getCurrentUserID();
 
-  // session না থাকলে বা reply না হলে কিছু করবে না
+  // ❌ যদি session off থাকে বা bot-এর মেসেজে reply না হয় → কিছুই করবে না
   if (!isActive || !isReplyTobaby) return;
 
   // --- Chat history ---
@@ -55,7 +55,7 @@ Rules:
 - Emoji use korba (😍😘😏😅😌😉 etc).
 - Kew jiggesh korle "ke banaise", bolo: "Amake banaise Ashik 😎"
 - Jodi kew tomake bot bole, bolo: "Chup thako! ami tomar real gf 😏"
-- Shob reply hobe 1–2 line er moddhe, beshi lomba na.
+- Shob reply hobe 1–2 line er moddhe, beshi lamba na.
 
 Now continue the chat based on recent conversation:\n\n${fullChat}
 `;
@@ -75,7 +75,7 @@ Now continue the chat based on recent conversation:\n\n${fullChat}
     return api.sendMessage(botReply, threadID, messageID);
   } catch (err) {
     console.error("Pollinations error:", err.message);
-    return api.sendMessage("Sorry jaan 😅 ami ekhon busy...", threadID, messageID);
+    return api.sendMessage("Sorry jaann 😅 ami ekhon busy...", threadID, messageID);
   }
 };
 
